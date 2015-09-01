@@ -20,6 +20,8 @@
 char *cwd;
 int cmd_help(tok_t arg[]);
 char cm[256];
+char command[256];
+char argCopy[256];
 
 int cmd_quit(tok_t arg[]) {
   printf("Bye\n");
@@ -27,11 +29,48 @@ int cmd_quit(tok_t arg[]) {
   return 1;
 }
 
-void p2(tok_t *t){
- execv(*t,t);
- perror(t);
+
+void p2(tok_t arg[]){
+int i;
+     char *parmList[] = {" ", arg[0], (char*)0};
+     i =execv(cm, parmList);
+ }
+
+tok_t *getTok(char *line) {
+  int i;
+  char *c;
+  tok_t *toks = malloc(MAXTOKS*sizeof(tok_t));
+  for (i=0; i<MAXTOKS; i++) toks[i] = NULL;     /* empty token array */
  
+  c = strtok(line,":");	 /* Start tokenizer on line */
+  for (i=0; c && (i < MAXTOKS); i++) {
+    toks[i] = c;
+    c = strtok(NULL,":");	/* scan for next token */
+  }
+  return toks;
 }
+
+
+
+void cmd_path(tok_t arg[]){
+
+char *path = getenv("PATH");
+char cmCopy[256];
+strcpy(cmCopy,cm);
+tok_t *t;
+t=getTok(path);
+int i=0;
+while(sizeof(t)>i){
+strcpy(cm,t[i]);
+strcat(cm,"/");
+strcat(cm,cmCopy);
+p2(cm);
+i++;
+}
+return 0;
+
+}
+
 
 
 int cmd_cd(tok_t arg[]){
@@ -52,8 +91,9 @@ typedef struct fun_desc {
 
 fun_desc_t cmd_table[] = {
   {cmd_help, "?", "show this help menu"},
-  {cmd_quit, "quit", "quit the command shell"},
-  {cmd_cd, "cd", "change woking directory"},
+  {cmd_quit, "quit", "quit the command shell"},  
+{cmd_cd, "cd", "change woking directory"},
+{cmd_path, cm, "path res"},
 };
 
 int cmd_help(tok_t arg[]) {
@@ -152,10 +192,9 @@ int shell (int argc, char *argv[]) {
     else {
     cpid = fork();
     if(cpid==0){
-	p2(t);
+
       fprintf(stdout, "This shell only supports built-ins. Replace this to run programs as commands.\n");
    }
- 
      wait(NULL);
     }
     lineNum++;
